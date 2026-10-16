@@ -1,0 +1,5 @@
+order_id,customer,product,amount
+1001,Alice,Laptop Stand,45
+1002,Bob,Keyboard,80
+1003,Charlie,Mouse,30
+1004,David,Monitor,250
