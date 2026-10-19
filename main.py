@@ -18,6 +18,7 @@ for file in csv_files:
 combined = pd.concat(dataframes, ignore_index=True)
 
 cleaned = combined.drop_duplicates()
+cleaned = cleaned.dropna(how="all")
 
 cleaned.to_excel("cleaned_sales.xlsx", index=False)
 
