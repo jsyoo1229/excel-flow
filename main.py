@@ -5,25 +5,49 @@ data_folder = Path("sample_data")
 
 csv_files = list(data_folder.glob("*.csv"))
 
-print("찾은 CSV 파일:")
+if not csv_files:
+    print("No CSV files found in the sample_data folder.")
+    exit()
+
+print("CSV files found:")
 for file in csv_files:
     print(file)
 
 dataframes = []
 
 for file in csv_files:
-    df = pd.read_csv(file)
-    dataframes.append(df)
+    try:
+        df = pd.read_csv(file)
+        dataframes.append(df)
+    except Exception as e:
+        print(f"Failed to read file: {file}")
+        print(f"Error: {e}")
+        
+if not dataframes:
+    print("No CSV files could be read.")
+    exit()        
+    
+columns = dataframes[0].columns
+
+for df in dataframes[1:]:
+    if not df.columns.equals(columns):
+        print("Warning: CSV files have different column structures.")
 
 combined = pd.concat(dataframes, ignore_index=True)
+combined.columns = combined.columns.str.strip()
+
+for column in combined.select_dtypes(include="str").columns:
+    combined[column] = combined[column].str.strip()
+    combined[column] = combined[column].replace("", pd.NA)
 
 cleaned = combined.drop_duplicates()
-cleaned = cleaned.dropna(how="all")
+cleaned = cleaned.dropna()
+
 
 cleaned.to_excel("cleaned_sales.xlsx", index=False)
 
 print()
-print("완료!")
-print(f"처리한 파일 수: {len(csv_files)}")
-print(f"원본 행 수: {len(combined)}")
-print(f"중복 제거 후 행 수: {len(cleaned)}")
+print("Done!")
+print(f"Files processed: {len(csv_files)}")
+print(f"Original rows: {len(combined)}")
+print(f"Cleaned rows: {len(cleaned)}")

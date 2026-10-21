@@ -3,3 +3,6 @@ order_id,customer,product,amount
 1009,Ivy,Keyboard,80
 
 1010,Jack,Monitor,250
+1011, Kate , Mouse ,60
+1012,Tom,,100
+1013,,Keyboard,80
