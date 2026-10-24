@@ -18,7 +18,7 @@ dataframes = []
 for file in csv_files:
     try:
         df = pd.read_csv(file)
-        dataframes.append(df)
+        dataframes.append((file, df))
     except Exception as e:
         print(f"Failed to read file: {file}")
         print(f"Error: {e}")
@@ -27,13 +27,27 @@ if not dataframes:
     print("No CSV files could be read.")
     exit()        
     
-columns = dataframes[0].columns
+column_counts = {}
 
-for df in dataframes[1:]:
-    if not df.columns.equals(columns):
-        print("Warning: CSV files have different column structures.")
+for file, df in dataframes:
+    columns = tuple(df.columns)
+    
+    if columns in column_counts:
+        column_counts[columns] += 1
+    else:
+        column_counts[columns] = 1 
+        
+main_columns = max(column_counts, key=column_counts.get)        
 
-combined = pd.concat(dataframes, ignore_index=True)
+valid_dataframes = []
+
+for file, df in dataframes:
+    if tuple(df.columns) == main_columns:
+        valid_dataframes.append(df)
+    else:
+        print(f"Skipped: {file} (column structure does not match)")
+
+combined = pd.concat(valid_dataframes, ignore_index=True)
 combined.columns = combined.columns.str.strip()
 
 for column in combined.select_dtypes(include="str").columns:
@@ -48,6 +62,7 @@ cleaned.to_excel("cleaned_sales.xlsx", index=False)
 
 print()
 print("Done!")
-print(f"Files processed: {len(csv_files)}")
+print(f"Files processed: {len(valid_dataframes)}")
+print(f"Files skipped: {len(dataframes) - len(valid_dataframes)}")
 print(f"Original rows: {len(combined)}")
 print(f"Cleaned rows: {len(cleaned)}")
