@@ -1,5 +1,5 @@
-order_id,customer,product,amount
-1005,Emma,Keyboard,80
-1006,Frank,Mouse,30
-1007,Grace,Webcam,70
-1003,Charlie,Mouse,30
+order_id,date,customer,product,amount
+1005,2026-02-03,Emma,Keyboard,80
+1006,2026-02-10,Frank,Mouse,30
+1007,2026-02-18,Grace,Webcam,70
+1003,2026-01-15,Charlie,Mouse,30

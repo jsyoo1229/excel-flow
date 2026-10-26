@@ -1,8 +1,8 @@
-order_id,customer,product,amount
-1008,Henry,Headphones,120
-1009,Ivy,Keyboard,80
+order_id,date,customer,product,amount
+1008,2026-03-03,Henry,Headphones,120
+1009,2026-03-08,Ivy,Keyboard,80
 
-1010,Jack,Monitor,250
-1011, Kate , Mouse ,"$1,200"
-1012,Tom,,100
-1013,,Keyboard,80
+1010,2026-03-12,Jack,Monitor,250
+1011,2026-03-15, Kate , Mouse ,"$1,200"
+1012,2026-03-20,Tom,,100
+1013,2026-03-25,,Keyboard,80

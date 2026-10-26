@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
+
 # Set the folder containing the CSV files
 data_folder = Path("sample_data")
 
@@ -103,17 +104,44 @@ for column in candidate_columns:
 
     # Convert values to numbers.
     # Values that cannot be converted become missing values.
-    numeric_values = pd.to_numeric(cleaned_values, errors="coerce")
+    numeric_values = pd.to_numeric(
+        cleaned_values,
+        errors="coerce"
+    )
 
-# Check only the values that were not originally missing
-non_missing = combined[column].notna()
+    # Check only the values that were not originally missing
+    non_missing = combined[column].notna()
 
-# Convert the column only if all existing values were successfully converted
-if numeric_values[non_missing].notna().all():
-    combined[column] = numeric_values
+    # Convert the column only if all existing values
+    # were successfully converted
+    if numeric_values[non_missing].notna().all():
+        combined[column] = numeric_values
 
 
-# Display column data types after numeric conversion
+# Try to detect and convert date columns
+for column in combined.select_dtypes(include="str").columns:
+    try:
+        # Try to parse text values as dates
+        parsed_dates = pd.to_datetime(
+            combined[column],
+            format="mixed",
+            errors="coerce"
+        )
+
+        # Check only the values that were not originally missing
+        non_missing = combined[column].notna()
+
+        # Convert the column only if all existing values
+        # were successfully parsed as dates
+        if parsed_dates[non_missing].notna().all():
+            combined[column] = parsed_dates
+
+    except Exception:
+        # Leave the column unchanged if date parsing fails
+        pass
+
+
+# Display column data types after automatic conversions
 print()
 print("Detected column types:")
 print(combined.dtypes)
