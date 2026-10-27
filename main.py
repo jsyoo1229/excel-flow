@@ -21,6 +21,7 @@ for file in csv_files:
 
 # Read each CSV file and store it together with its file path
 dataframes = []
+failed_files = []
 
 for file in csv_files:
     try:
@@ -28,8 +29,12 @@ for file in csv_files:
 
         # Remove leading and trailing whitespace from column names
         df.columns = df.columns.str.strip()
+
         dataframes.append((file, df))
+
     except Exception as e:
+        failed_files.append(file)
+
         # Continue processing even if one file cannot be read
         print(f"Failed to read file: {file}")
         print(f"Error: {e}")
@@ -58,18 +63,18 @@ main_columns = max(column_counts, key=column_counts.get)
 
 # Keep only CSV files that match the most common column structure
 valid_dataframes = []
+skipped_files = []
 
 for file, df in dataframes:
     if tuple(df.columns) == main_columns:
         valid_dataframes.append(df)
     else:
+        skipped_files.append(file)
         print(f"Skipped: {file} (column structure does not match)")
 
 
 # Combine all valid CSV files into one DataFrame
 combined = pd.concat(valid_dataframes, ignore_index=True)
-
-
 
 
 # Clean text columns
@@ -114,8 +119,7 @@ for column in candidate_columns:
     # Check only the values that were not originally missing
     non_missing = combined[column].notna()
 
-    # Convert the column only if all existing values
-    # were successfully converted
+    # Convert the column only if all existing values were successfully converted
     if numeric_values[non_missing].notna().all():
         combined[column] = numeric_values
 
@@ -123,7 +127,6 @@ for column in candidate_columns:
 # Try to detect and convert date columns
 for column in combined.select_dtypes(include="str").columns:
     try:
-        # Try to parse text values as dates
         parsed_dates = pd.to_datetime(
             combined[column],
             format="mixed",
@@ -133,8 +136,7 @@ for column in combined.select_dtypes(include="str").columns:
         # Check only the values that were not originally missing
         non_missing = combined[column].notna()
 
-        # Convert the column only if all existing values
-        # were successfully parsed as dates
+        # Convert the column only if all existing values are valid dates
         if parsed_dates[non_missing].notna().all():
             combined[column] = parsed_dates
 
@@ -150,10 +152,16 @@ print(combined.dtypes)
 
 
 # Remove duplicate rows
+rows_before_cleaning = len(combined)
+
 cleaned = combined.drop_duplicates()
+duplicate_rows_removed = rows_before_cleaning - len(cleaned)
 
 # Remove rows containing missing values
+rows_before_dropna = len(cleaned)
+
 cleaned = cleaned.dropna()
+missing_rows_removed = rows_before_dropna - len(cleaned)
 
 
 # Export the cleaned data to an Excel file
@@ -162,8 +170,14 @@ cleaned.to_excel("cleaned_sales.xlsx", index=False)
 
 # Display a summary of the cleaning process
 print()
-print("Done!")
+print("Cleaning summary:")
+print(f"Files found: {len(csv_files)}")
+print(f"Files read: {len(dataframes)}")
 print(f"Files processed: {len(valid_dataframes)}")
-print(f"Files skipped: {len(dataframes) - len(valid_dataframes)}")
-print(f"Original rows: {len(combined)}")
-print(f"Cleaned rows: {len(cleaned)}")
+print(f"Files skipped: {len(skipped_files)}")
+print(f"Files failed: {len(failed_files)}")
+print()
+print(f"Rows before cleaning: {rows_before_cleaning}")
+print(f"Duplicate rows removed: {duplicate_rows_removed}")
+print(f"Rows with missing values removed: {missing_rows_removed}")
+print(f"Rows after cleaning: {len(cleaned)}")
