@@ -25,6 +25,9 @@ dataframes = []
 for file in csv_files:
     try:
         df = pd.read_csv(file)
+
+        # Remove leading and trailing whitespace from column names
+        df.columns = df.columns.str.strip()
         dataframes.append((file, df))
     except Exception as e:
         # Continue processing even if one file cannot be read
@@ -66,8 +69,7 @@ for file, df in dataframes:
 # Combine all valid CSV files into one DataFrame
 combined = pd.concat(valid_dataframes, ignore_index=True)
 
-# Remove leading and trailing whitespace from column names
-combined.columns = combined.columns.str.strip()
+
 
 
 # Clean text columns
