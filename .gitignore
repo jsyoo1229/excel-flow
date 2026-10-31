@@ -1,5 +1,16 @@
+# Python virtual environment
 .venv/
+
+# Python cache
 __pycache__/
 *.pyc
 
+# PyInstaller build files
+build/
+dist/
+*.spec
+
+# Generated Excel files
 cleaned_sales.xlsx
+cleaned_data.xlsx
+final_test.xlsx

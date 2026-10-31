@@ -1,0 +1,5 @@
+order_id,date,customer,product,amount
+2007,2026-04-07, Grace , Mouse ,30
+2008,2026-04-08,,Keyboard,80
+2009,2026-04-09,Henry,,100
+2001,2026-04-01,Alice,Keyboard,80

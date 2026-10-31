@@ -1,0 +1,4 @@
+order_id,date,customer,product,amount
+2001,2026-04-01,Alice,Keyboard,80
+2002,2026-04-02,Bob,Mouse,30
+2003,2026-04-03,Charlie,Monitor,250
