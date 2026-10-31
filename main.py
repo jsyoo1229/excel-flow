@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
+from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font
 
 
 def clean_csv_files(data_folder, output_file, remove_missing=True):
@@ -162,19 +164,54 @@ def clean_csv_files(data_folder, output_file, remove_missing=True):
     )
 
 
-    # Automatically adjust Excel column widths
-    from openpyxl import load_workbook
-
+    # Format the Excel output
     workbook = load_workbook(output_file)
     worksheet = workbook.active
 
+
+    # Make header cells bold
+    for cell in worksheet[1]:
+        cell.font = Font(bold=True)
+
+
+    # Freeze the header row
+    worksheet.freeze_panes = "A2"
+
+
+    # Add filters to the header row
+    worksheet.auto_filter.ref = worksheet.dimensions
+
+
+        # Format date columns
+    for column_index, column_name in enumerate(
+        cleaned.columns,
+        start=1
+    ):
+        if pd.api.types.is_datetime64_any_dtype(
+            cleaned[column_name]
+        ):
+            for row_index in range(
+                2,
+                worksheet.max_row + 1
+            ):
+                worksheet.cell(
+                    row=row_index,
+                    column=column_index
+                ).number_format = "yyyy-mm-dd"
+
+
+    # Automatically adjust column widths
     for column_cells in worksheet.columns:
         max_length = 0
 
         for cell in column_cells:
             if cell.value is not None:
                 cell_length = len(str(cell.value))
-                max_length = max(max_length, cell_length)
+
+                max_length = max(
+                    max_length,
+                    cell_length
+                )
 
         column_letter = get_column_letter(
             column_cells[0].column
@@ -184,6 +221,8 @@ def clean_csv_files(data_folder, output_file, remove_missing=True):
             min(max_length + 2, 50)
         )
 
+
+    # Save the formatted Excel file
     workbook.save(output_file)
 
 
