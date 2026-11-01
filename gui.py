@@ -1,5 +1,6 @@
+import sys
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
 
 from main import clean_csv_files
@@ -13,7 +14,6 @@ def select_folder():
     if folder:
         folder_path.set(folder)
 
-        # Automatically suggest an output file
         if not output_path.get():
             output_path.set(
                 str(Path(folder) / "cleaned_data.xlsx")
@@ -51,7 +51,6 @@ def clean_files():
         )
         return
 
-
     data_folder = Path(folder)
     output_file = Path(output)
 
@@ -59,6 +58,11 @@ def clean_files():
         missing_option.get() == "remove"
     )
 
+    clean_button.config(
+        text="Cleaning...",
+        state="disabled"
+    )
+    root.update_idletasks()
 
     try:
         summary = clean_csv_files(
@@ -72,38 +76,58 @@ def clean_files():
             "Cleaning failed",
             str(error)
         )
-        return
+
+    else:
+        result_text = (
+            f"Files processed: {summary['files_processed']}\n"
+            f"Files skipped: {summary['files_skipped']}\n"
+            f"Files failed: {summary['files_failed']}\n\n"
+            f"Duplicates removed: "
+            f"{summary['duplicate_rows_removed']}\n"
+            f"Missing rows removed: "
+            f"{summary['missing_rows_removed']}\n"
+            f"Rows after cleaning: "
+            f"{summary['rows_after_cleaning']}\n\n"
+            f"Saved to:\n{output_file}"
+        )
+
+        messagebox.showinfo(
+            "Cleaning complete",
+            result_text
+        )
+
+    finally:
+        clean_button.config(
+            text="Clean CSV Files",
+            state="normal"
+        )
 
 
-    result_text = (
-        f"Files processed: {summary['files_processed']}\n"
-        f"Files skipped: {summary['files_skipped']}\n"
-        f"Files failed: {summary['files_failed']}\n\n"
-        f"Duplicates removed: "
-        f"{summary['duplicate_rows_removed']}\n"
-        f"Missing rows removed: "
-        f"{summary['missing_rows_removed']}\n"
-        f"Rows after cleaning: "
-        f"{summary['rows_after_cleaning']}\n\n"
-        f"Saved to:\n{output_file}"
-    )
+# --------------------------------------------------
+# Main window
+# --------------------------------------------------
 
-
-    messagebox.showinfo(
-        "Cleaning complete",
-        result_text
-    )
-
-
-# Create the main window
 root = tk.Tk()
 
+if getattr(sys, "frozen", False):
+    base_path = Path(sys._MEIPASS)
+else:
+    base_path = Path(__file__).parent
+
+root.iconbitmap(
+    base_path / "assets" / "excel-flow.ico"
+)
+
 root.title("Excel Flow")
-root.geometry("620x390")
+root.geometry("720x650")
 root.resizable(False, False)
+root.configure(bg="#f5f7fa")
 
 
-# GUI variables
+# --------------------------------------------------
+# Variables
+# --------------------------------------------------
+
 folder_path = tk.StringVar()
 output_path = tk.StringVar()
 
@@ -112,142 +136,317 @@ missing_option = tk.StringVar(
 )
 
 
-# Title
+# --------------------------------------------------
+# Styles
+# --------------------------------------------------
+
+style = ttk.Style()
+
+style.configure(
+    "TEntry",
+    padding=7
+)
+
+style.configure(
+    "Secondary.TButton",
+    font=("Segoe UI", 10),
+    padding=(12, 7)
+)
+
+style.configure(
+    "Primary.TButton",
+    font=("Segoe UI", 11, "bold"),
+    padding=(18, 11)
+)
+
+style.configure(
+    "TRadiobutton",
+    background="#ffffff",
+    font=("Segoe UI", 10)
+)
+
+
+# --------------------------------------------------
+# Header
+# --------------------------------------------------
+
+header = tk.Frame(
+    root,
+    bg="#f5f7fa"
+)
+
+header.pack(
+    fill="x",
+    padx=55,
+    pady=(35, 22)
+)
+
+
 title_label = tk.Label(
-    root,
+    header,
     text="Excel Flow",
-    font=("Arial", 22, "bold")
+    font=("Segoe UI", 25, "bold"),
+    bg="#f5f7fa",
+    fg="#1f2937"
 )
 
-title_label.pack(
-    pady=(25, 20)
+title_label.pack()
+
+
+subtitle_label = tk.Label(
+    header,
+    text="Combine, clean, and export your CSV files to Excel.",
+    font=("Segoe UI", 10),
+    bg="#f5f7fa",
+    fg="#6b7280"
+)
+
+subtitle_label.pack(
+    pady=(7, 0)
 )
 
 
-# Input folder section
-input_label = tk.Label(
+# --------------------------------------------------
+# Main card
+# --------------------------------------------------
+
+card = tk.Frame(
     root,
-    text="Input folder"
+    bg="#ffffff",
+    highlightbackground="#dfe3e8",
+    highlightthickness=1
 )
 
-input_label.pack()
+card.pack(
+    fill="both",
+    expand=True,
+    padx=55,
+    pady=(0, 40)
+)
 
 
-input_frame = tk.Frame(root)
+content = tk.Frame(
+    card,
+    bg="#ffffff"
+)
+
+content.pack(
+    fill="both",
+    expand=True,
+    padx=32,
+    pady=27
+)
+
+
+# --------------------------------------------------
+# Input folder
+# --------------------------------------------------
+
+input_label = tk.Label(
+    content,
+    text="CSV folder",
+    font=("Segoe UI", 10, "bold"),
+    bg="#ffffff",
+    fg="#374151"
+)
+
+input_label.pack(
+    anchor="w"
+)
+
+
+input_help = tk.Label(
+    content,
+    text="Select the folder containing the CSV files you want to combine.",
+    font=("Segoe UI", 9),
+    bg="#ffffff",
+    fg="#6b7280"
+)
+
+input_help.pack(
+    anchor="w",
+    pady=(2, 7)
+)
+
+
+input_frame = tk.Frame(
+    content,
+    bg="#ffffff"
+)
 
 input_frame.pack(
-    pady=(5, 15)
+    fill="x",
+    pady=(0, 19)
 )
 
 
-folder_entry = tk.Entry(
+folder_entry = ttk.Entry(
     input_frame,
-    textvariable=folder_path,
-    width=55
+    textvariable=folder_path
 )
 
 folder_entry.pack(
     side="left",
-    padx=(0, 8)
+    fill="x",
+    expand=True,
+    padx=(0, 10)
 )
 
 
-browse_button = tk.Button(
+browse_button = ttk.Button(
     input_frame,
     text="Browse",
-    width=10,
+    style="Secondary.TButton",
     command=select_folder
 )
 
 browse_button.pack(
-    side="left"
+    side="right"
 )
 
 
-# Output file section
+# --------------------------------------------------
+# Output file
+# --------------------------------------------------
+
 output_label = tk.Label(
-    root,
-    text="Output file"
+    content,
+    text="Output file",
+    font=("Segoe UI", 10, "bold"),
+    bg="#ffffff",
+    fg="#374151"
 )
 
-output_label.pack()
+output_label.pack(
+    anchor="w"
+)
 
 
-output_frame = tk.Frame(root)
+output_help = tk.Label(
+    content,
+    text="Choose where the cleaned Excel file should be saved.",
+    font=("Segoe UI", 9),
+    bg="#ffffff",
+    fg="#6b7280"
+)
+
+output_help.pack(
+    anchor="w",
+    pady=(2, 7)
+)
+
+
+output_frame = tk.Frame(
+    content,
+    bg="#ffffff"
+)
 
 output_frame.pack(
-    pady=(5, 15)
+    fill="x",
+    pady=(0, 19)
 )
 
 
-output_entry = tk.Entry(
+output_entry = ttk.Entry(
     output_frame,
-    textvariable=output_path,
-    width=55
+    textvariable=output_path
 )
 
 output_entry.pack(
     side="left",
-    padx=(0, 8)
+    fill="x",
+    expand=True,
+    padx=(0, 10)
 )
 
 
-output_button = tk.Button(
+output_button = ttk.Button(
     output_frame,
     text="Save As",
-    width=10,
+    style="Secondary.TButton",
     command=select_output_file
 )
 
 output_button.pack(
-    side="left"
+    side="right"
 )
 
 
-# Missing value options
+# --------------------------------------------------
+# Missing values
+# --------------------------------------------------
+
 missing_label = tk.Label(
-    root,
-    text="Missing values"
+    content,
+    text="Missing values",
+    font=("Segoe UI", 10, "bold"),
+    bg="#ffffff",
+    fg="#374151"
 )
 
 missing_label.pack(
-    pady=(5, 5)
+    anchor="w"
 )
 
 
-remove_radio = tk.Radiobutton(
-    root,
+missing_help = tk.Label(
+    content,
+    text="Choose how rows containing missing data should be handled.",
+    font=("Segoe UI", 9),
+    bg="#ffffff",
+    fg="#6b7280"
+)
+
+missing_help.pack(
+    anchor="w",
+    pady=(2, 7)
+)
+
+
+remove_radio = ttk.Radiobutton(
+    content,
     text="Remove rows with missing values",
     variable=missing_option,
     value="remove"
 )
 
-remove_radio.pack()
+remove_radio.pack(
+    anchor="w",
+    pady=(0, 4)
+)
 
 
-keep_radio = tk.Radiobutton(
-    root,
+keep_radio = ttk.Radiobutton(
+    content,
     text="Keep rows with missing values",
     variable=missing_option,
     value="keep"
 )
 
-keep_radio.pack()
+keep_radio.pack(
+    anchor="w"
+)
 
 
+# --------------------------------------------------
 # Clean button
-clean_button = tk.Button(
-    root,
-    text="Clean Files",
-    width=25,
-    height=2,
+# --------------------------------------------------
+
+clean_button = ttk.Button(
+    content,
+    text="Clean CSV Files",
+    style="Primary.TButton",
     command=clean_files
 )
 
 clean_button.pack(
-    pady=25
+    fill="x",
+    pady=(25, 0)
 )
 
 
-# Start the GUI
+# --------------------------------------------------
+# Start GUI
+# --------------------------------------------------
+
 root.mainloop()
